@@ -1,0 +1,113 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@400;500;600&display=swap');
+
+@import 'tailwindcss';
+
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Playfair Display', serif;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 900ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up {
+    animation: none;
+  }
+}
+
+.page-flow > section {
+  position: relative;
+  transition: background-color 320ms ease, box-shadow 320ms ease;
+}
+
+.page-flow > section + section {
+  margin-top: -1px;
+}
+
+.page-flow > section + section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: min(9vw, 5rem);
+  right: min(9vw, 5rem);
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(90, 15, 15, 0.22),
+    transparent
+  );
+  pointer-events: none;
+}
+
+.page-flow > section:nth-of-type(odd) {
+  padding-top: clamp(6.2rem, 8vw, 8rem);
+  padding-bottom: clamp(6.2rem, 8vw, 8rem);
+}
+
+.page-flow > section:nth-of-type(even) {
+  padding-top: clamp(5.5rem, 7vw, 7rem);
+  padding-bottom: clamp(5.8rem, 7.2vw, 7.2rem);
+}
+
+.page-flow h2 + p,
+.page-flow h3 + p {
+  margin-top: 1.5rem;
+}
+
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 700ms ease, transform 700ms ease;
+}
+
+.scroll-reveal.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.motion-card {
+  transition: transform 320ms ease, box-shadow 320ms ease, border-color 320ms ease;
+}
+
+.motion-button {
+  transition:
+    transform 260ms ease,
+    background-color 260ms ease,
+    box-shadow 260ms ease,
+    color 260ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal,
+  .scroll-reveal.in-view,
+  .motion-card,
+  .motion-button {
+    transition: none;
+    transform: none;
+    opacity: 1;
+  }
+}
