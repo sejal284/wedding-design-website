@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const initialFormData = {
   names: '',
@@ -11,7 +12,24 @@ const initialFormData = {
 }
 
 function ContactPage() {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState(initialFormData)
+  const [loggedInUser, setLoggedInUser] = useState(null)
+
+  useEffect(() => {
+    const userValue = localStorage.getItem('user')
+
+    if (!userValue) {
+      setLoggedInUser(null)
+      return
+    }
+
+    try {
+      setLoggedInUser(JSON.parse(userValue))
+    } catch {
+      setLoggedInUser(null)
+    }
+  }, [])
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -24,11 +42,30 @@ function ContactPage() {
   const handleSubmit = async (event) => {
     event.preventDefault()
 
+    if (!loggedInUser) {
+      alert('Please login before submitting your consultation.')
+      navigate('/login')
+      return
+    }
+
+    const payload = {
+      userId: loggedInUser.uid,
+      userEmail: loggedInUser.email,
+      userFullName: loggedInUser.fullName,
+      names: formData.names,
+      email: formData.email,
+      weddingDate: formData.weddingDate,
+      cityVenue: formData.cityVenue,
+      phone: formData.phone,
+      source: formData.source,
+      message: formData.message,
+    }
+
     try {
       const response = await fetch('http://localhost:5000/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       })
 
       if (!response.ok) {
@@ -37,6 +74,7 @@ function ContactPage() {
 
       alert('Form submitted successfully')
       setFormData(initialFormData)
+      navigate('/dashboard')
     } catch (error) {
       alert('Failed to submit form. Please try again.')
     }
@@ -58,6 +96,15 @@ function ContactPage() {
 
       <section className="bg-[#f3e6c9] px-6 py-24 sm:px-8">
         <div className="mx-auto max-w-4xl space-y-10">
+          <div className="rounded-xl border border-[#5a0f0f]/15 bg-white/80 p-5 shadow-md backdrop-blur-sm">
+            <p className="text-sm font-medium text-[#5a0f0f]">
+              Logged in as:{' '}
+              {loggedInUser?.fullName || 'Guest'}
+              {' '}
+              ({loggedInUser?.email || 'Not logged in'})
+            </p>
+          </div>
+
           <div className="rounded-xl border border-[#5a0f0f]/10 bg-white p-10 shadow-lg">
             <h2 className="font-['Playfair_Display'] text-4xl font-semibold text-[#5a0f0f] sm:text-5xl">
               Tell Us About You

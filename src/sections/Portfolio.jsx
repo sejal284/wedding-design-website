@@ -1,26 +1,26 @@
 import { createElement } from 'react'
+import royalHeritageImage from '../assets/royalheritage.jpeg'
+import modernMinimalImage from '../assets/modernminimal.jpeg'
+import floralImage from '../assets/Floral.jpeg'
 
 const themes = [
   {
     title: 'Royal Heritage Wedding',
     description:
       'A regal visual direction inspired by heirloom motifs, rich textures, and timeless ceremonial elegance.',
-    image:
-      'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1400&q=80',
+    image: royalHeritageImage,
   },
   {
     title: 'Modern Minimal Romance',
     description:
       'Clean typography, refined neutrals, and intentional details designed for contemporary couples.',
-    image:
-      'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=1400&q=80',
+    image: modernMinimalImage,
   },
   {
-    title: 'Garden Soiree Celebration',
+    title: 'Floral Theme',
     description:
       'A soft editorial look with botanical accents, romantic palettes, and elevated print storytelling.',
-    image:
-      'https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=1400&q=80',
+    image: floralImage,
   },
 ]
 

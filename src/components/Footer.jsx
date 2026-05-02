@@ -118,6 +118,37 @@ function Footer() {
         ),
       ),
     ),
+    // Bottom admin access strip
+    createElement(
+      'div',
+      {
+        className: 'mt-8 border-t border-white/10 pt-4',
+      },
+      createElement(
+        'div',
+        {
+          className:
+            'mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-2 px-0 text-xs text-white/60 sm:flex-row sm:px-6',
+        },
+        createElement(
+          'p',
+          {
+            className: 'text-xs text-white/60',
+          },
+          '© 2026 Lil Details. All rights reserved.',
+        ),
+        createElement(
+          Link,
+          {
+            to: '/admin',
+            className:
+              'text-xs text-white/60 hover:text-white/90 transition-opacity duration-150',
+            'aria-hidden': true,
+          },
+          'Internal Access',
+        ),
+      ),
+    ),
   )
 }
 

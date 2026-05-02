@@ -1,24 +1,24 @@
 import { createElement } from 'react'
 import { Link } from 'react-router-dom'
+import royalHeritageImage from '../assets/royalheritage.jpeg'
+import modernMinimalImage from '../assets/modernminimal.jpeg'
+import floralImage from '../assets/Floral.jpeg'
 
 const caseStudies = [
   {
     title: 'Royal Heritage Wedding',
     description: 'Timeless motifs and regal detailing crafted into a unified guest journey.',
-    image:
-      'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1400&q=80',
+    image: royalHeritageImage,
   },
   {
     title: 'Modern Minimal Romance',
     description: 'Clean aesthetics with intentional typography for a contemporary celebration.',
-    image:
-      'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=1400&q=80',
+    image: modernMinimalImage,
   },
   {
-    title: 'Garden Soiree Celebration',
+    title: 'Floral Theme',
     description: 'Soft botanicals and editorial layouts designed for an elegant outdoor story.',
-    image:
-      'https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=1400&q=80',
+    image: floralImage,
   },
 ]
 

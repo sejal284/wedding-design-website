@@ -1,34 +1,34 @@
 import { createElement } from 'react'
 import { Link } from 'react-router-dom'
+import weddingBrandingImage from '../assets/wedding branding.jpeg'
+import digitalCollateralsImage from '../assets/invites.jpeg'
+import eventStationeryImage from '../assets/Event Stationary.jpeg'
+import plannerSupportImage from '../assets/Planner Design Suppor.jpeg'
 
 const services = [
   {
     title: 'Wedding Branding',
     description:
       'A complete visual identity for your wedding — including colors, typography, and design language that ties everything together.',
-    image:
-      'https://images.unsplash.com/photo-1465495976277-4387d4b0f6a6?auto=format&fit=crop&w=1400&q=80',
+    image: weddingBrandingImage,
   },
   {
     title: 'Digital Collaterals',
     description:
       'E-invites, save-the-dates, and itineraries designed for modern sharing.',
-    image:
-      'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1400&q=80',
+    image: digitalCollateralsImage,
   },
   {
     title: 'Event Stationery',
     description:
       'Menus, welcome boards, and signage that enhance your guest experience.',
-    image:
-      'https://images.unsplash.com/photo-1478146896981-b80fe463b330?auto=format&fit=crop&w=1400&q=80',
+    image: eventStationeryImage,
   },
   {
     title: 'Planner Design Support',
     description:
       'White-label design services for wedding planners who need a reliable creative partner.',
-    image:
-      'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=1400&q=80',
+    image: plannerSupportImage,
   },
 ]
 

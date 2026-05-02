@@ -3,23 +3,42 @@ import React, { useEffect, useState } from 'react'
 function Admin() {
   const [data, setData] = useState([])
   const [search, setSearch] = useState('')
+  const [edits, setEdits] = useState({})
+  const [loadingMap, setLoadingMap] = useState({})
+
+  const STATUS_OPTIONS = ['New Inquiry', 'Contacted', 'Demo Sent', 'Confirmed']
+
+  const fetchData = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        window.location.href = '/admin'
+        return
+      }
+
+      const res = await fetch('http://localhost:5000/api/contact', {
+        headers: { Authorization: token },
+      })
+      const responseData = await res.json()
+      setData(responseData)
+
+      // initialize edit state for each item
+      const initial = {}
+      (responseData || []).forEach((item) => {
+        initial[item._id] = {
+          status: item.status || 'New Inquiry',
+          demoLink: item.demoLink || '',
+          adminMessage: item.adminMessage || '',
+        }
+      })
+      setEdits(initial)
+    } catch (err) {
+      console.error(err)
+    }
+  }
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-
-    if (!token) {
-      window.location.href = '/admin'
-      return
-    }
-
-    fetch('http://localhost:5000/api/contact', {
-      headers: {
-        Authorization: token,
-      },
-    })
-      .then((res) => res.json())
-      .then((responseData) => setData(responseData))
-      .catch((err) => console.log(err))
+    fetchData()
   }, [])
 
   const query = search.trim().toLowerCase()
@@ -34,16 +53,14 @@ function Admin() {
       if (!query) return true
 
       return [item.names, item.email, item.cityVenue].some((value) =>
-        String(value || '')
-          .toLowerCase()
-          .includes(query),
+        String(value || '').toLowerCase().includes(query),
       )
     })
 
   const buildWhatsAppLink = (item) => {
     const cleanPhone = String(item.phone || '').replace(/\D/g, '')
     const text = encodeURIComponent(
-      `Hi ${item.names || 'there'}, thanks for your enquiry. Please check this demo link: https://example.com/demo`,
+      `Hi ${item.names || 'there'}, thanks for your enquiry. Please check this demo link: ${item.demoLink || 'https://example.com/demo'}`,
     )
 
     return `https://wa.me/${cleanPhone}?text=${text}`
@@ -52,7 +69,7 @@ function Admin() {
   const buildEmailLink = (item) => {
     const subject = encodeURIComponent('Regarding your wedding enquiry')
     const body = encodeURIComponent(
-      `Hi ${item.names || 'there'},\n\nThanks for reaching out. Here is a demo link for next steps: https://example.com/demo\n\nBest regards,\nLil Details`,
+      `Hi ${item.names || 'there'},\n\nThanks for reaching out. Here is a demo link for next steps: ${item.demoLink || 'https://example.com/demo'}\n\nBest regards,\nLil Details`,
     )
 
     return `mailto:${item.email || ''}?subject=${subject}&body=${body}`
@@ -61,6 +78,56 @@ function Admin() {
   const latestSubmission = visibleData[0]?.createdAt
     ? new Date(visibleData[0].createdAt).toLocaleDateString()
     : '—'
+
+  const handleEditChange = (id, field, value) => {
+    setEdits((prev) => ({
+      ...prev,
+      [id]: { ...(prev[id] || {}), [field]: value },
+    }))
+  }
+
+  const setRowLoading = (id, v) => setLoadingMap((p) => ({ ...p, [id]: v }))
+
+  const handleSave = async (id) => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        alert('Admin token missing. Please login again.')
+        window.location.href = '/admin'
+        return
+      }
+
+      const payload = edits[id] || {}
+      setRowLoading(id, true)
+
+      const res = await fetch(`http://localhost:5000/api/contact/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token,
+        },
+        body: JSON.stringify({
+          status: payload.status,
+          demoLink: payload.demoLink,
+          adminMessage: payload.adminMessage,
+        }),
+      })
+
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || 'Failed to update')
+      }
+
+      // refresh data after successful update
+      await fetchData()
+      alert('Client updated successfully')
+    } catch (err) {
+      console.error(err)
+      alert('Update failed: ' + (err.message || 'unknown error'))
+    } finally {
+      setRowLoading(id, false)
+    }
+  }
 
   return (
     <div
@@ -263,43 +330,102 @@ function Admin() {
                 <th style={th}>Phone</th>
                 <th style={th}>Source</th>
                 <th style={th}>Message</th>
+                <th style={th}>Admin Controls</th>
                 <th style={th}>Actions</th>
               </tr>
             </thead>
 
             <tbody>
-              {visibleData.map((item, index) => (
-                <tr
-                  key={item._id || index}
-                  style={{
-                    borderBottom: '1px solid rgba(123,30,30,0.08)',
-                    background: index % 2 === 0 ? '#fff' : '#fcf9f7',
-                  }}
-                >
-                  <td style={td}>{item.names}</td>
-                  <td style={td}>{item.email}</td>
-                  <td style={td}>{item.weddingDate}</td>
-                  <td style={td}>{item.cityVenue}</td>
-                  <td style={td}>{item.phone}</td>
-                  <td style={td}>{item.source}</td>
-                  <td style={td}>{item.message}</td>
-                  <td style={td}>
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                      <a
-                        href={buildWhatsAppLink(item)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={buttonLink}
-                      >
-                        Send WhatsApp
-                      </a>
-                      <a href={buildEmailLink(item)} style={buttonLink}>
-                        Send Email
-                      </a>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {visibleData.map((item, index) => {
+                const id = item._id || index
+                const edit = edits[id] || { status: 'New Inquiry', demoLink: '', adminMessage: '' }
+                const rowLoading = !!loadingMap[id]
+
+                return (
+                  <tr
+                    key={id}
+                    style={{
+                      borderBottom: '1px solid rgba(123,30,30,0.08)',
+                      background: index % 2 === 0 ? '#fff' : '#fcf9f7',
+                    }}
+                  >
+                    <td style={td}>{item.names}</td>
+                    <td style={td}>{item.email}</td>
+                    <td style={td}>{item.weddingDate}</td>
+                    <td style={td}>{item.cityVenue}</td>
+                    <td style={td}>{item.phone}</td>
+                    <td style={td}>{item.source}</td>
+                    <td style={td}>{item.message}</td>
+
+                    <td style={{ ...td, minWidth: 320 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <select
+                          value={edit.status}
+                          onChange={(e) => handleEditChange(id, 'status', e.target.value)}
+                          style={{ padding: '8px 10px', borderRadius: 8 }}
+                        >
+                          {STATUS_OPTIONS.map((s) => (
+                            <option key={s} value={s}>
+                              {s}
+                            </option>
+                          ))}
+                        </select>
+
+                        <input
+                          type="text"
+                          placeholder="Demo link (optional)"
+                          value={edit.demoLink}
+                          onChange={(e) => handleEditChange(id, 'demoLink', e.target.value)}
+                          style={{ padding: '8px 10px', borderRadius: 8 }}
+                        />
+
+                        <textarea
+                          placeholder="Admin message"
+                          value={edit.adminMessage}
+                          onChange={(e) => handleEditChange(id, 'adminMessage', e.target.value)}
+                          rows={3}
+                          style={{ padding: '8px 10px', borderRadius: 8 }}
+                        />
+                      </div>
+                    </td>
+
+                    <td style={{ ...td, minWidth: 200 }}>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <button
+                          onClick={() => handleSave(id)}
+                          disabled={rowLoading}
+                          style={{
+                            background: 'linear-gradient(180deg, #8b2323, #6f1818)',
+                            color: '#fff',
+                            padding: '9px 12px',
+                            borderRadius: '999px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            boxShadow: '0 10px 18px rgba(123,30,30,0.18)',
+                            border: 'none',
+                            cursor: rowLoading ? 'not-allowed' : 'pointer',
+                            opacity: rowLoading ? 0.7 : 1,
+                          }}
+                        >
+                          {rowLoading ? 'Saving...' : 'Save Update'}
+                        </button>
+
+                        <a
+                          href={buildWhatsAppLink(item)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={buttonLink}
+                        >
+                          Send WhatsApp
+                        </a>
+                        <a href={buildEmailLink(item)} style={buttonLink}>
+                          Send Email
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
