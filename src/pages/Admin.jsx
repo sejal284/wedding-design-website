@@ -9,6 +9,25 @@ function Admin() {
 
   const STATUS_OPTIONS = ['New Inquiry', 'Contacted', 'Demo Sent', 'Confirmed']
 
+  const buildEditState = (item = {}) => ({
+    status: item.status || 'New Inquiry',
+    demoLink: item.demoLink || '',
+    adminMessage: item.adminMessage || '',
+  })
+
+  const syncSavedContact = (savedItem) => {
+    if (!savedItem?._id) return
+
+    setData((prevData) =>
+      prevData.map((item) => (item._id === savedItem._id ? { ...item, ...savedItem } : item)),
+    )
+
+    setEdits((prevEdits) => ({
+      ...prevEdits,
+      [savedItem._id]: buildEditState(savedItem),
+    }))
+  }
+
   const fetchData = async () => {
     try {
       const token = localStorage.getItem('token')
@@ -18,21 +37,18 @@ function Admin() {
       }
 
       const res = await fetch(`${API_BASE_URL}/api/contact`, {
-        headers: { Authorization: token },
+        headers: { Authorization: `Bearer ${token}` },
       })
       const responseData = await res.json()
-      setData(responseData)
+      const normalizedData = Array.isArray(responseData) ? responseData : []
 
-      // initialize edit state for each item
-      const initial = {}
-      (responseData || []).forEach((item) => {
-        initial[item._id] = {
-          status: item.status || 'New Inquiry',
-          demoLink: item.demoLink || '',
-          adminMessage: item.adminMessage || '',
-        }
+      setData(normalizedData)
+
+      const initialEdits = {}
+      normalizedData.forEach((item) => {
+        initialEdits[item._id] = buildEditState(item)
       })
-      setEdits(initial)
+      setEdits(initialEdits)
     } catch (err) {
       console.error(err)
     }
@@ -58,19 +74,21 @@ function Admin() {
       )
     })
 
-  const buildWhatsAppLink = (item) => {
+  const buildWhatsAppLink = (item, edit) => {
     const cleanPhone = String(item.phone || '').replace(/\D/g, '')
+    const demoLink = edit?.demoLink || item.demoLink || 'https://example.com/demo'
     const text = encodeURIComponent(
-      `Hi ${item.names || 'there'}, thanks for your enquiry. Please check this demo link: ${item.demoLink || 'https://example.com/demo'}`,
+      `Hi ${item.names || 'there'}, thanks for your enquiry. Please check this demo link: ${demoLink}`,
     )
 
     return `https://wa.me/${cleanPhone}?text=${text}`
   }
 
-  const buildEmailLink = (item) => {
+  const buildEmailLink = (item, edit) => {
     const subject = encodeURIComponent('Regarding your wedding enquiry')
+    const demoLink = edit?.demoLink || item.demoLink || 'https://example.com/demo'
     const body = encodeURIComponent(
-      `Hi ${item.names || 'there'},\n\nThanks for reaching out. Here is a demo link for next steps: ${item.demoLink || 'https://example.com/demo'}\n\nBest regards,\nLil Details`,
+      `Hi ${item.names || 'there'},\n\nThanks for reaching out. Here is a demo link for next steps: ${demoLink}\n\nBest regards,\nLil Details`,
     )
 
     return `mailto:${item.email || ''}?subject=${subject}&body=${body}`
@@ -105,7 +123,7 @@ function Admin() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: token,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           status: payload.status,
@@ -119,8 +137,9 @@ function Admin() {
         throw new Error(text || 'Failed to update')
       }
 
-      // refresh data after successful update
-      await fetchData()
+      const result = await res.json()
+      const savedItem = result?.data || result
+      syncSavedContact(savedItem)
       alert('Client updated successfully')
     } catch (err) {
       console.error(err)
@@ -412,14 +431,14 @@ function Admin() {
                         </button>
 
                         <a
-                          href={buildWhatsAppLink(item)}
+                          href={buildWhatsAppLink(item, edit)}
                           target="_blank"
                           rel="noopener noreferrer"
                           style={buttonLink}
                         >
                           Send WhatsApp
                         </a>
-                        <a href={buildEmailLink(item)} style={buttonLink}>
+                        <a href={buildEmailLink(item, edit)} style={buttonLink}>
                           Send Email
                         </a>
                       </div>
