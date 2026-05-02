@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { API_BASE_URL } from '../config'
 
 function Admin() {
   const [data, setData] = useState([])
@@ -16,7 +17,7 @@ function Admin() {
         return
       }
 
-      const res = await fetch('http://localhost:5000/api/contact', {
+      const res = await fetch(`${API_BASE_URL}/api/contact`, {
         headers: { Authorization: token },
       })
       const responseData = await res.json()
@@ -100,7 +101,7 @@ function Admin() {
       const payload = edits[id] || {}
       setRowLoading(id, true)
 
-      const res = await fetch(`http://localhost:5000/api/contact/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/api/contact/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

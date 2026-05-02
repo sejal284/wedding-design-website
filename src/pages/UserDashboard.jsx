@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { API_BASE_URL } from '../config'
 
 function UserDashboard() {
   const navigate = useNavigate()
@@ -34,7 +35,7 @@ function UserDashboard() {
 
       try {
         const response = await fetch(
-          `http://localhost:5000/api/contact/user/${encodeURIComponent(user.uid)}`,
+          `${API_BASE_URL}/api/contact/user/${encodeURIComponent(user.uid)}`,
         )
 
         if (response.status === 404) {
